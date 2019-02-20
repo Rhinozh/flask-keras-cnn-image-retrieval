@@ -1,23 +1,91 @@
-import shutil
-import time
-import copy
-import sklearn
-from sklearn import neighbors
-import datetime
+# -*- coding: utf-8 -*-
+# Author: yongyuan.name
 
-def knn(training,comp,knn_n_neighbors,knn_model_name,knn_feature_table,target_image_feature):
-    distances = []; indices = []
-    if training == 1:
-        # 训练KNN
-        print('LOGOCOMP_INFO: begin KNN training...')
-        print(datetime.datetime.now().strftime('%H:%M:%S'))
-        knn = neighbors.NearestNeighbors(n_neighbors=100, algorithm='kd_tree').fit(knn_feature_table)
+"""
+利用VGG16提取特征
+---------------------------------------------------------
+from keras.applications.vgg16 import VGG16
+from keras.preprocessing import image
+from keras.applications.vgg16 import preprocess_input
+import numpy as np
+model = VGG16(weights='imagenet', include_top=False)
 
-        # 存储KNN模型
-        sklearn.externals.joblib.dump(knn, knn_model_name)
-        print('LOGOCOMP_INFO: %s training done!'%knn_model_name)
-        print(datetime.datetime.now().strftime('%H:%M:%S'))
-    elif comp == 1:
-        knn = sklearn.externals.joblib.load(knn_model_name)
-        distances, indices = knn.kneighbors(target_image_feature, n_neighbors = knn_n_neighbors)
-    return(distances, indices)
+img_path = 'elephant.jpg'
+img = image.load_img(img_path, target_size=(224, 224))
+x = image.img_to_array(img)
+x = np.expand_dims(x, axis=0)
+x = preprocess_input(x)
+
+features = model.predict(x)
+
+
+从VGG19的任意中间层中抽取特征
+---------------------------------------------------------
+from keras.applications.vgg19 import VGG19
+from keras.preprocessing import image
+from keras.applications.vgg19 import preprocess_input
+from keras.models import Model
+import numpy as np
+
+base_model = VGG19(weights='imagenet')
+model = Model(inputs=base_model.input, outputs=base_model.get_layer('block4_pool').output)
+
+img_path = 'elephant.jpg'
+img = image.load_img(img_path, target_size=(224, 224))
+x = image.img_to_array(img)
+x = np.expand_dims(x, axis=0)
+x = preprocess_input(x)
+
+block4_pool_features = model.predict(x)
+"""
+
+import numpy as np
+from numpy import linalg as LA
+
+from keras.applications.vgg16 import VGG16
+from keras.preprocessing import image
+from keras.applications.vgg16 import preprocess_input
+
+import keras
+from keras.applications.vgg16 import VGG16
+from keras.preprocessing import image
+from keras.applications.vgg16 import preprocess_input
+import numpy as np
+# model = VGG16(weights='imagenet', include_top=False)
+model = keras.applications.mobilenet.MobileNet(input_shape=None, alpha=1.0, depth_multiplier=1,
+                                               dropout=1e-3, include_top=True, weights='imagenet',
+                                               input_tensor=None, pooling=None, classes=1000)
+
+img_path = 'ant.jpg'
+img = image.load_img(img_path, target_size=(224, 224))
+x = image.img_to_array(img)
+x = np.expand_dims(x, axis=0)
+x = preprocess_input(x)
+
+features = model.predict(x)
+print(type(features))
+print(features.shape)
+
+class VGGNet:
+    def __init__(self):
+        # weights: 'imagenet'
+        # pooling: 'max' or 'avg'
+        # input_shape: (width, height, 3), width and height should >= 48
+        self.input_shape = (224, 224, 3)
+        self.weight = 'imagenet'
+        self.pooling = 'max'
+        self.model = VGG16(weights = self.weight, input_shape = (self.input_shape[0], self.input_shape[1], self.input_shape[2]), pooling = self.pooling, include_top = False)
+        self.model.predict(np.zeros((1, 224, 224 , 3)))
+
+    '''
+    Use vgg16 model to extract features
+    Output normalized feature vector
+    '''
+    def extract_feat(self, img_path):
+        img = image.load_img(img_path, target_size=(self.input_shape[0], self.input_shape[1]))
+        img = image.img_to_array(img)
+        img = np.expand_dims(img, axis=0)
+        img = preprocess_input(img)
+        feat = self.model.predict(img)
+        norm_feat = feat[0]/LA.norm(feat[0])
+        return norm_feat

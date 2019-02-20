@@ -5,15 +5,16 @@ import h5py
 import numpy as np
 import argparse
 
-from extract_cnn_vgg16_keras import VGGNet
+# from extract_cnn_vgg16_keras import VGGNet
+from miniExtract import VGGNet
 
 
-ap = argparse.ArgumentParser()
-ap.add_argument("-database", required = True,
-	help = "Path to database which contains images to be indexed")
-ap.add_argument("-index", required = True,
-	help = "Name of index file")
-args = vars(ap.parse_args())
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-database", required = True,
+# 	help = "Path to database which contains images to be indexed")
+# ap.add_argument("-index", required = True,
+# 	help = "Name of index file")
+# args = vars(ap.parse_args())
 
 
 '''
@@ -28,7 +29,13 @@ def get_imlist(path):
 '''
 if __name__ == "__main__":
 
+    # ==============================
+    args = {}
+    args["database"] = "database/"
+    args["index"] = "xxx"
+    # ==============================
     db = args["database"]
+
     img_list = get_imlist(db)
     
     print("--------------------------------------------------")
